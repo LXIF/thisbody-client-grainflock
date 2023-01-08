@@ -79,7 +79,7 @@ export default {
         const play = computed(() => store.getters.getPlay);
         const lastChanged = computed(() => store.getters.getLastChanged);
 
-        const spreadID = Math.pow(Math.random() * 2 - 1, 2);
+        const spreadID = Math.pow(Math.random() * 2 - 1, 1.3);
 
         watch(play, newValue => {
             //map it to between 0 and grainFlockerSampleLength
@@ -91,6 +91,7 @@ export default {
             const player = newValue.find(player => player.name === lastChanged.value);
 
             //position, spread and length
+            // console.log(spreadID);
             let spreadPosition = player.position + player.spread * spreadID;
             if(spreadPosition > 100) {
                 spreadPosition -= 100;
@@ -100,7 +101,7 @@ export default {
             }
 
             const loopStart = mapRange(0, 100, 0, sampleLength, spreadPosition);
-            const loopLength = mapRange(0, 100, 0, 0.5, player.length);
+            const loopLength = mapRange(0, 100, 0.01, 0.5, player.length);
 
             let loopEnd = loopStart + loopLength;
 

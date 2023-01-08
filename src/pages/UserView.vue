@@ -25,6 +25,7 @@
             :saturation='0'
             :alpha='0'
         />
+        <qr-code class="user-qr"></qr-code>
         <connection-frame></connection-frame>
         <grain-flocker :audioHasStarted="audioIsActive"></grain-flocker>
     </div>
@@ -33,6 +34,7 @@
 <script>
 import ColorScreen from '../components/user/ColorScreen';
 import GrainFlocker from '../components/instruments/GrainFlocker.vue';
+import QrCode from '../components/UI/QrCode.vue';
 
 export default {
     data() {
@@ -42,7 +44,8 @@ export default {
     },
     components: {
         ColorScreen,
-        GrainFlocker
+        GrainFlocker,
+        QrCode
     },
     computed: {
         marqueeText() {
@@ -140,4 +143,9 @@ export default {
             transform: rotate(0deg);
         }
     }
+
+    .user-qr
+        position fixed
+        bottom 50px
+        right 50px
 </style>

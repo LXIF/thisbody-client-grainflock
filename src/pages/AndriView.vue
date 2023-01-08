@@ -1,8 +1,14 @@
 <template>
     <div class='andri-card'>
+            <div class="qr-title">
+                <!-- <h3 style="color: white">howdy</h3> -->
+                <qr-code scale="12" class="andri-qr"></qr-code>
+            </div>
+            <h3>chouwa</h3>
             <xy-pad @presence="presence('01', 'pos-spread', $event)" side="right"></xy-pad>
             <xy-pad @presence="presence('01', 'len-vol', $event)" side="left"></xy-pad>
             <hr />
+            <h3>taiko</h3>
             <xy-pad @presence="presence('02', 'pos-spread', $event)" side="right"></xy-pad>
             <xy-pad @presence="presence('02', 'len-vol', $event)" side="left"></xy-pad>
             <!-- <grain-flocker :audioHasStarted="true"></grain-flocker> -->
@@ -12,6 +18,7 @@
 <script>
 
 import { useStore } from 'vuex'
+import QrCode from '../components/UI/QrCode.vue';
 // let GrainFlocker = () => import('../components/instruments/GrainFlocker.vue')
 // import { ref } from 'vue'
 
@@ -91,10 +98,9 @@ export default {
             // GrainFlocker: () => import('../components/instruments/GrainFlocker.vue')
         }
     },
-    data() {
-        return {
-        }
-    },
+    components: {
+        QrCode
+    }
 }
 </script>
 
@@ -132,5 +138,17 @@ export default {
         top: 2px;
         left: 2px;
     }
+
+    .qr-title
+        height 100vh
+        width 100vw
+    
+    .andri-qr
+        position absolute
+        top 25vh
+        margin 40px
+        width 60vw
+        display block
+
 
 </style>
