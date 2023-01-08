@@ -4,6 +4,7 @@
             <circle class='xy-point' v-for='(user, index) in users' :key='index' :cx='user.position.x' :cy='user.position.y' r='1' />
             <circle class='xy-cursor' :cx='touchX' :cy='touchY' r='5px'></circle>
         </svg>
+        <button class="recording-button" :class="buttonMode"  @click="handleButtonClick">OWO</button>
     </div>
 </template>
 
@@ -13,11 +14,19 @@ export default {
     props: ['users', 'radius'],
     data() {
         return {
-            touchX: 50,
-            touchY: 50,
+            touchX: 0,
+            touchY: 100,
             touching: false,
             offsetX: 0,
-            offsetY: 0
+            offsetY: 0,
+            recordBuffer: [],
+            recordArmed: false,
+            recording: false,
+            recordInterval: '',
+            sampleIntervalMs: 30,
+            isPlayingBack: false,
+            playbackInterval: '',
+            pointerId: ''
         }
     },
     computed: {
@@ -25,21 +34,56 @@ export default {
             const min = 3;
             const max = 50;
             return this.radius / 100 * max + min;
+        },
+        buttonMode() {
+            return {
+                armed: this.recordArmed,
+                recording: this.recording,
+                playback: this.isPlayingBack
+            }
         }
     },
     watch: {
         radius() {
             this.setRadius();
+        },
+        touching() {
+            if(this.recordArmed) {
+                if(this.touching) {
+                    this.recordBuffer = [];
+                    this.recording = true;
+                    this.recordInterval = setInterval(() => {
+                        if(this.touching) {
+                            this.recordBuffer.push({
+                                x: this.touchX,
+                                y: this.touchY
+                            });
+                        } else {
+                            this.recording = false;
+                            clearInterval(this.recordInterval);
+                            this.playRecording();
+                        }
+                    }, this.sampleIntervalMs)
+                }
+            }
         }
     },
     methods: {
         startSetCirclePosition(e) {
             this.touching = true;
             this.setCirclePosition(e);
+            
+            this.pointerId = e.pointerId;
+
             const that = this;
-            function handlePointerup() {
-                that.endSetCirclePosition();
-                document.querySelector('html').removeEventListener('pointerup', handlePointerup);
+
+            
+            function handlePointerup(e) {
+
+                if(e.pointerId === that.pointerId) {
+                    that.endSetCirclePosition();
+                    document.querySelector('html').removeEventListener('pointerup', handlePointerup);
+                }
             }
             document.querySelector('html').addEventListener('pointerup', handlePointerup);
         },
@@ -47,7 +91,10 @@ export default {
             this.touching = false;
         },
         setCirclePosition(e) {
-            if(this.touching) {
+            if(this.isPlayingBack) {
+                this.stopPlayback();
+            }
+            if(this.touching && !this.isPlayingBack) {
                 const xyPad = document.getElementById('xy-pad');
                 const padWidth = xyPad.clientWidth;
                 const padHeight = xyPad.clientHeight;
@@ -72,7 +119,7 @@ export default {
                 this.touchY = newY;
                 this.$emit('presence', {
                         x: this.touchX,
-                        y: this.touchY,
+                        y: 100 - this.touchY,
                         radius: this.presenceRadius
                     });
             }
@@ -83,6 +130,46 @@ export default {
                         y: this.touchY,
                         radius: this.presenceRadius
                     });
+        },
+        handleButtonClick() {
+            if(!this.recording && !this.isPlayingBack) {
+                this.recordArmed = !this.recordArmed;
+            }
+            if(this.isPlayingBack) {
+                this.stopPlayback();
+                this.recordArmed = false;
+            }
+        },
+        playRecording() {
+            this.isPlayingBack = true;
+            let frame = this.recordBuffer.length - 1;
+            let forward = false;
+            console.log(this.recordBuffer);
+
+            this.playbackInterval = setInterval(() => {
+                this.touchX = this.recordBuffer[frame].x;
+                this.touchY = this.recordBuffer[frame].y;
+                this.$emit('presence', {
+                        x: this.touchX,
+                        y: 100 - this.touchY,
+                    });
+                if(!forward) {
+                    frame -= 1
+                    if(frame === 0) {
+                        forward = true;
+                    }
+                } else {
+                    frame += 1
+                    if(frame === this.recordBuffer.length - 1) {
+                        forward = false;
+                    }
+                }
+            }, this.sampleIntervalMs);
+        },
+        stopPlayback() {
+            this.isPlayingBack = false;
+            this.recordArmed = false;
+            clearInterval(this.playbackInterval);
         }
     }
 }
@@ -90,11 +177,11 @@ export default {
 
 <style lang="stylus" scoped>
     .xy-pad
-        // width 300px
-        // height 300px
         border 1px solid color-medium-light
         border-radius 10px
         touch-action none
+        margin 20px
+        padding 10px
 
     .xy-cursor
         stroke color-medium-light
@@ -108,4 +195,26 @@ export default {
         width inherit
         background-color transparent
         border-radius 10px
+        border 1px solid lime
+    .recording-button
+        width 50px
+        height 50px
+        border-radius 25px
+        background-color white
+        border none
+        box-shadow 0 0 10px white
+           
+
+    .armed
+        background-color red
+        box-shadow 0 0 10px lime
+
+    .recording
+        background-color orange
+        box-shadow 0 0 10px lime
+
+    .playback
+        background-color blue
+        box-shadow 0 0 10px lime
+
 </style>

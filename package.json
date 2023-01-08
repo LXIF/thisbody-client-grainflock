@@ -8,6 +8,7 @@
     "lint": "vue-cli-service lint",
     "build-report": "vue-cli-service build --report"
   },
+  "proxy": "http://localhost:3001",
   "dependencies": {
     "core-js": "^3.6.5",
     "nosleep.js": "^0.12.0",

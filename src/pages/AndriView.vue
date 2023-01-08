@@ -1,99 +1,94 @@
 <template>
     <div class='andri-card'>
-            <div id='breath'>
-                <h1>breath: {{ Math.round(breathIntensity) }}</h1>
-                <h1>bite: {{ Math.round(biteIntensity) }}</h1>
-                <h1>nod: {{ Math.round(nodIntensity) }}</h1>
-                <h1>tilt: {{ Math.round(tiltIntensity) }}</h1>
-                <h1>heartbeat: {{ Math.round(heartbeatIntensity) }}</h1>
-            </div>
-            <xy-pad @presence='presence'></xy-pad>
+            <xy-pad @presence="presence('01', 'pos-spread', $event)"></xy-pad>
+            <xy-pad @presence="presence('01', 'len-vol', $event)"></xy-pad>
+            <hr />
+            <xy-pad @presence="presence('02', 'pos-spread', $event)"></xy-pad>
+            <xy-pad @presence="presence('02', 'len-vol', $event)"></xy-pad>
+            <!-- <grain-flocker :audioHasStarted="true"></grain-flocker> -->
     </div>
 </template>
 
 <script>
 
 import { useStore } from 'vuex'
-import { ref } from 'vue'
+// let GrainFlocker = () => import('../components/instruments/GrainFlocker.vue')
+// import { ref } from 'vue'
 
 export default {
 
     setup() {
         const store = useStore();
 
-        const breathIntensity = ref(0);
-        const biteIntensity = ref(0);
-        const nodIntensity = ref(0);
-        const tiltIntensity = ref(0);
-        const heartbeatIntensity = ref(0);
-
-        function presence(presence) {
-            console.log(presence);
+        function presence(name, controller, presence) {
+            const playObject = {
+                x: presence.x,
+                y: presence.y,
+                controller: controller,
+                name: name
+            };
+            store.dispatch('sendPlay', playObject);
         }
 
         //////////////MIDI///////////////
         //for midi
-        function allowMIDIAccess() {
-                navigator.requestMIDIAccess()
-                .then(onMIDISuccess, onMIDIFailure);
-        }
+        // function allowMIDIAccess() {
+        //         navigator.requestMIDIAccess()
+        //         .then(onMIDISuccess, onMIDIFailure);
+        // }
 
-        try {
-            allowMIDIAccess();
-        } catch(err) {
-            console.log(err);
-        }
+        // try {
+        //     allowMIDIAccess();
+        // } catch(err) {
+        //     console.log(err);
+        // }
 
-        function onMIDIFailure() {
-            console.log('Could not access your MIDI devices.');
-        }
+        // function onMIDIFailure() {
+        //     console.log('Could not access your MIDI devices.');
+        // }
 
-        function onMIDISuccess(midiAccess) {
-            console.log(midiAccess);
-            for (var input of midiAccess.inputs.values()) {
-                input.onmidimessage = getMIDIMessage;
-            }
-        }
+        // function onMIDISuccess(midiAccess) {
+        //     console.log(midiAccess);
+        //     for (var input of midiAccess.inputs.values()) {
+        //         input.onmidimessage = getMIDIMessage;
+        //     }
+        // }
 
-        function midiToPercent(i) {
-            return i / 127 * 100;
-        }
+        // function midiToPercent(i) {
+        //     return i / 127 * 100;
+        // }
 
-        function getMIDIMessage(midiMessage) {
-            const data = midiMessage.data;
-                switch (data[1]) {
-                    case 70: //breath
-                        breathIntensity.value = midiToPercent(data[2]);
-                        store.dispatch('sendBreath', data[2]);
-                        break;
-                    case 71: //bite
-                        biteIntensity.value = midiToPercent(data[2]);
-                        store.dispatch('sendBite', data[2]);
-                        break;
-                    case 72: //nod
-                        nodIntensity.value = midiToPercent(data[2]);
-                        store.dispatch('sendNod', data[2]);
-                        break;
-                    case 73: //tilt
-                        tiltIntensity.value = midiToPercent(data[2]);
-                        store.dispatch('sendTilt', data[2]);
-                        break;
-                    case 100: //heartbeat
-                        heartbeatIntensity.value = midiToPercent(data[2]);
-                        store.dispatch('sendHeartbeat', data[2]);
-                        break;
-                    default:
-                        break;
-            }
-        }
+        // function getMIDIMessage(midiMessage) {
+        //     const data = midiMessage.data;
+        //         switch (data[1]) {
+        //             case 70: //breath
+        //                 breathIntensity.value = midiToPercent(data[2]);
+        //                 store.dispatch('sendBreath', data[2]);
+        //                 break;
+        //             case 71: //bite
+        //                 biteIntensity.value = midiToPercent(data[2]);
+        //                 store.dispatch('sendBite', data[2]);
+        //                 break;
+        //             case 72: //nod
+        //                 nodIntensity.value = midiToPercent(data[2]);
+        //                 store.dispatch('sendNod', data[2]);
+        //                 break;
+        //             case 73: //tilt
+        //                 tiltIntensity.value = midiToPercent(data[2]);
+        //                 store.dispatch('sendTilt', data[2]);
+        //                 break;
+        //             case 100: //heartbeat
+        //                 heartbeatIntensity.value = midiToPercent(data[2]);
+        //                 store.dispatch('sendHeartbeat', data[2]);
+        //                 break;
+        //             default:
+        //                 break;
+        //     }
+        // }
         return {
-            allowMIDIAccess,
-            breathIntensity,
-            biteIntensity,
-            nodIntensity,
-            tiltIntensity,
-            heartbeatIntensity,
-            presence
+            presence,
+            // GrainFlocker
+            // GrainFlocker: () => import('../components/instruments/GrainFlocker.vue')
         }
     },
     data() {
@@ -104,9 +99,9 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
-.andri-card
-    max-width 400px
-    margin 0 auto
+.andri-card {
+    max-width: 400px;
+}
 
 
     .registration-radio {

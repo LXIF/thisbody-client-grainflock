@@ -1,0 +1,167 @@
+<template>
+    <div></div>
+</template>
+<script>
+import { useStore } from 'vuex';
+import {
+    computed,
+    watch,
+    ref
+} from 'vue';
+
+import * as Tone from 'tone';
+// import { watch } from 'fs';
+import NoSleep from 'nosleep.js'
+
+
+export default {
+    setup() {
+        const store = useStore();
+        let noSleep = new NoSleep();
+
+        ////////////////TEST SYNTH///////////////
+        const testSynth = new Tone.Synth().toDestination();
+
+        function testTone() {
+            const randomFrequency = 300 + Math.random() * 500;
+            testSynth.triggerAttackRelease(randomFrequency,"8n");
+        }
+
+        ////////////GRAINFLOCKER///////////////
+
+        //create sample paths
+        const numberOfFlockSamples = 2;
+        const flockBaseUrl = '/samples/thisbody_grainflocker_';
+        const grainFlockers = [];
+        const grainFlockerSampleLengths = [];
+        const grainFlockerVolumes = [];
+
+        function sampleLength(object) {
+            return object.sampleTime * object.buffer.length
+        }
+
+        for(let counter = 1; counter <= numberOfFlockSamples; counter++) {
+            let flockSampleName;
+            if(counter < 10) {
+                flockSampleName = '0' + counter;
+            } else {
+                flockSampleName = counter;
+            }
+            //create actual grainers
+            const grainFlocker = new Tone.GrainPlayer(flockBaseUrl + flockSampleName + '.wav', () => {
+                grainFlockerSampleLengths.push({
+                    name: flockSampleName,
+                    length: sampleLength(grainFlocker)
+                });
+            });
+            grainFlocker.set({
+                loop: true,
+                loopStart: 0,
+                loopEnd: 0.1,
+                name: flockSampleName
+            });
+            
+            const volume = new Tone.Volume(0).toDestination();
+            volume.set({
+                name: flockSampleName,
+                mute: true
+            });
+
+            grainFlocker.connect(volume);
+            grainFlockers.push(grainFlocker);
+            grainFlockerVolumes.push(volume);
+        }
+
+        function mapRange(in1, in2, out1, out2, value) {
+            return (value - in1) * (out2 - out1) / (in2 - in1) + out1;
+        }
+
+        const play = computed(() => store.getters.getPlay);
+        const lastChanged = computed(() => store.getters.getLastChanged);
+
+        const spreadID = Math.pow(Math.random() * 2 - 1, 2);
+
+        watch(play, newValue => {
+            //map it to between 0 and grainFlockerSampleLength
+            const indexToChange = grainFlockers.findIndex((player) => {
+                return player.name === lastChanged.value
+            });
+            const sampleLength = grainFlockerSampleLengths.find((guy) => guy.name === lastChanged.value).length;
+
+            const player = newValue.find(player => player.name === lastChanged.value);
+
+            //position, spread and length
+            let spreadPosition = player.position + player.spread * spreadID;
+            if(spreadPosition > 100) {
+                spreadPosition -= 100;
+            }
+            if(spreadPosition < 0) {
+                spreadPosition += 100;
+            }
+
+            const loopStart = mapRange(0, 100, 0, sampleLength, spreadPosition);
+            const loopLength = mapRange(0, 100, 0, 0.5, player.length);
+
+            let loopEnd = loopStart + loopLength;
+
+            if(loopEnd > sampleLength) {
+                loopEnd = sampleLength;
+            }
+            
+            grainFlockers[indexToChange].set({
+                loopStart: loopStart,
+                loopEnd: loopEnd,
+            });
+
+            //volume
+            
+            if(player.volume > 3) {
+                const newVolume = mapRange(0, 100, -40, 0, player.volume);
+                grainFlockerVolumes[indexToChange].set({
+                    mute: false,
+                    volume: newVolume
+                });
+            } else {
+                grainFlockerVolumes[indexToChange].set({
+                    mute: true,
+            });
+        }
+
+        }, {
+            deep: true
+        });
+
+        const audioIsActive = ref(false);
+
+        function startAudio() {
+            audioIsActive.value = true;
+            Tone.start()
+            .then(() => {
+                Tone.Transport.start();
+                // playBreathSamples();
+                for(let i = 0; i < grainFlockers.length; i++) {
+                    grainFlockers[i].start();
+                }
+            });
+            store.dispatch('startAudio');
+            noSleep.enable();
+            // if(process.env.FULLSCREEN) {
+            //     document.querySelector('body').requestFullscreen();
+            // }
+        }
+
+        return {
+            startAudio,
+            audioIsActive,
+            testTone,
+            // testSynth,
+        }
+    },
+    props: ['audioHasStarted'],
+    watch: {
+        audioHasStarted() {
+            this.startAudio();
+        }
+    }
+}
+</script>

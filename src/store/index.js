@@ -9,11 +9,8 @@ const store = createStore({
         return {
             connected: false,
             audioStarted: false,
-            breath: 0,
-            bite: 0,
-            nod: 0,
-            tilt: 0,
-            heartbeat: 0,
+            play: [],
+            lastChanged: ''
         }
     },
     mutations: {
@@ -23,87 +20,88 @@ const store = createStore({
         startAudio(state) {
             state.audioStarted = true;
         },
-        setBreath(state, payload) {
-            state.breath = payload;
-        },
-        setBite(state, payload) {
-            state.bite = payload;
-        },
-        setNod(state, payload) {
-            state.nod = payload;
-        },
-        setTilt(state, payload) {
-            state.tilt = payload;
-        },
-        setHeartbeat(state, payload) {
-            state.heartbeat = payload;
-        },
+        setPlay(state, payload) {
+            // console.log(payload);
+            state.lastChanged = payload.name;
+            //find or create player object in state.play
+            const playerNr = state.play.findIndex(player => player.name === payload.name);
+            
+            if(playerNr === -1) {
+                if(payload.controller === 'pos-spread') {
+                    state.play.push({
+                        name: payload.name,
+                        position: payload.x,
+                        spread: payload.y,
+                        length: 0,
+                        volume: 0
+                    });
+                }
+                if(payload.controller === 'len-vol') {
+                    state.play.push({
+                        name: payload.name,
+                        position: 0,
+                        spread: 0,
+                        length: payload.x,
+                        volume: payload.y
+                    });
+                }
+            } else {
+                if(payload.controller === 'pos-spread') {
+                    state.play[playerNr] = {...state.play[playerNr],
+                        position: payload.x,
+                        spread: payload.y
+                    }
+                }
+                if(payload.controller === 'len-vol') {
+                    state.play[playerNr] = {...state.play[playerNr],
+                        length: payload.x,
+                        volume: payload.y
+                    }
+                }
+            }
+            state.play.sort((a,b) => parseInt(a.name) - parseInt(b.name));
+        }
     },
     actions: {
-        sendBreath(context, payload) {
-            context.commit('setBreath', payload);
-            socket.emit('breath', payload);
-        },
-        sendBite(context, payload) {
-            context.commit('setBite', payload);
-            socket.emit('bite', payload);
-        },
-        sendNod(context, payload) {
-            context.commit('setNod', payload);
-            socket.emit('nod', payload);
-        },
-        sendTilt(context, payload) {
-            context.commit('setTilt', payload);
-            socket.emit('tilt', payload);
-        },
-        sendHeartbeat(context, payload) {
-            context.commit('setHeartbeat', payload);
-            socket.emit('heartbeat', payload);
-        },
-        receiveBreath(context, payload) {
-            context.commit('setBreath', payload);
-        },
-        receiveNod(context, payload) {
-            context.commit('setNod', payload);
-        },
-        receiveTilt(context, payload) {
-            context.commit('setTilt', payload);
-        },
-        receiveBite(context, payload) {
-            context.commit('setBite', payload);
-        },
-        receiveHeartbeat(context, payload) {
-            context.commit('setHeartbeat', payload);
-        },
+        // sendBreath(context, payload) {
+        //     context.commit('setBreath', payload);
+        //     socket.emit('breath', payload);
+        // },
+
+        // receiveBreath(context, payload) {
+        //     context.commit('setBreath', payload);
+        // },
+
         setConnectionStatus(context, payload) {
             context.commit('setConnectionStatus', payload);
         },
         startAudio(context) {
             context.commit('startAudio');
         },
+        sendPlay(context, payload) {
+            context.commit('setPlay', payload);
+            socket.emit('play', payload);
+        },
+        receivePlay(context, payload) {
+            context.commit('setPlay', payload);
+        }
     },
     getters: {
-        getBreath(state) {
-            return state.breath;
-        },
-        getBite(state) {
-            return state.bite;
-        },
-        getNod(state) {
-            return state.nod;
-        },
-        getTilt(state) {
-            return state.tilt;
-        },
-        getHeartbeat(state) {
-            return state.heartbeat;
-        },
+        // getHeartbeat(state) {
+        //     return state.heartbeat;
+        // },
         connected(state) {
             return state.connected;
         },
         audioStarted(state) {
             return state.audioStarted
         },
+        getPlay(state) {
+            return state.play
+        },
+        getLastChanged(state) {
+            return state.lastChanged
+        }
     }
 
 });
@@ -121,20 +119,9 @@ socket.on('disconnect', () => {
     store.dispatch('setConnectionStatus', false);
 })
 
-socket.on('breath', (breath) => {
-    store.dispatch('receiveBreath', breath);
+socket.on('play', (payload) => {
+    store.dispatch('receivePlay', payload);
 });
-socket.on('bite', (bite) => {
-    store.dispatch('receiveBite', bite);
-});
-socket.on('nod', (nod) => {
-    store.dispatch('receiveNod', nod);
-});
-socket.on('tilt', (tilt) => {
-    store.dispatch('receiveTilt', tilt);
-});
-socket.on('heartbeat', (heartbeat) => {
-    store.dispatch('receiveHeartbeat', heartbeat);
-});
+
 
 export default store;
