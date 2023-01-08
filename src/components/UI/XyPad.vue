@@ -1,6 +1,6 @@
 <template>
     <div class='xy-pad'>
-        <svg id='xy-pad' @pointerdown='startSetCirclePosition' @pointermove.prevent='setCirclePosition' viewBox='0 0 100 100'>
+        <svg id='xy-pad' :class="svgPosition" @pointerdown='startSetCirclePosition' @pointermove.prevent='setCirclePosition' viewBox='0 0 100 100'>
             <circle class='xy-point' v-for='(user, index) in users' :key='index' :cx='user.position.x' :cy='user.position.y' r='1' />
             <circle class='xy-cursor' :cx='touchX' :cy='touchY' r='5px'></circle>
         </svg>
@@ -11,7 +11,7 @@
 <script>
 export default {
     emits: ['presence'],
-    props: ['users', 'radius'],
+    props: ['users', 'radius', 'side'],
     data() {
         return {
             touchX: 0,
@@ -39,9 +39,17 @@ export default {
             return {
                 armed: this.recordArmed,
                 recording: this.recording,
-                playback: this.isPlayingBack
+                playback: this.isPlayingBack,
+                right: this.side === 'left',
+                left: this.side === 'right'
             }
-        }
+        },
+        svgPosition() {
+            return {
+                right: this.side === 'right',
+                left: this.side === 'left',
+            }
+        },
     },
     watch: {
         radius() {
@@ -179,9 +187,10 @@ export default {
     .xy-pad
         border 1px solid color-medium-light
         border-radius 10px
-        touch-action none
         margin 20px
+        height 40vh
         padding 10px
+        position relative
 
     .xy-cursor
         stroke color-medium-light
@@ -191,11 +200,15 @@ export default {
         stroke red
         fill red
     svg
-        height inherit
+        height 35vh
         width inherit
         background-color transparent
         border-radius 10px
         border 1px solid lime
+        position absolute
+        top 10px
+        touch-action none
+
     .recording-button
         width 50px
         height 50px
@@ -203,6 +216,14 @@ export default {
         background-color white
         border none
         box-shadow 0 0 10px white
+        position absolute
+        bottom 5px
+
+    .right
+        right 5px
+
+    .left
+        left 5px
            
 
     .armed

@@ -1,10 +1,10 @@
 <template>
     <div class='andri-card'>
-            <xy-pad @presence="presence('01', 'pos-spread', $event)"></xy-pad>
-            <xy-pad @presence="presence('01', 'len-vol', $event)"></xy-pad>
+            <xy-pad @presence="presence('01', 'pos-spread', $event)" side="right"></xy-pad>
+            <xy-pad @presence="presence('01', 'len-vol', $event)" side="left"></xy-pad>
             <hr />
-            <xy-pad @presence="presence('02', 'pos-spread', $event)"></xy-pad>
-            <xy-pad @presence="presence('02', 'len-vol', $event)"></xy-pad>
+            <xy-pad @presence="presence('02', 'pos-spread', $event)" side="right"></xy-pad>
+            <xy-pad @presence="presence('02', 'len-vol', $event)" side="left"></xy-pad>
             <!-- <grain-flocker :audioHasStarted="true"></grain-flocker> -->
     </div>
 </template>
