@@ -3,6 +3,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 import UserView from './pages/UserView'
 import AndriView from './pages/AndriView'
+import MidiView from './pages/MidiView'
 
 
 const routes = [
@@ -14,6 +15,10 @@ const routes = [
         path: '/andri',
         component: AndriView,
     },
+    {
+        path: '/midi',
+        component: MidiView
+    }
 ]
 
 const router = createRouter({

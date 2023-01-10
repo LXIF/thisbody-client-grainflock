@@ -19,6 +19,11 @@ export default {
         const store = useStore();
         let noSleep = new NoSleep();
 
+        function mapRange(in1, in2, out1, out2, value) {
+            return (value - in1) * (out2 - out1) / (in2 - in1) + out1;
+        }
+
+
         ////////////////TEST SYNTH///////////////
         const testSynth = new Tone.Synth().toDestination();
 
@@ -28,6 +33,25 @@ export default {
         }
 
         ////////////GRAINFLOCKER///////////////
+
+        //sidechain
+        const midi = computed(() => store.getters.getMidi);
+        const sideChainVolume = new Tone.Volume().toDestination();
+
+        watch(midi, newValue => {
+            let newVolume = mapRange(0, 100, -40, 0, newValue);
+            console.log(newVolume);
+            if(newVolume < -55) {
+                sideChainVolume.set({
+                    mute: true
+                })
+            } else {
+                sideChainVolume.set({
+                    mute: false,
+                    volume: newVolume
+                })
+            }
+        });
 
         //create sample paths
         const numberOfFlockSamples = 2;
@@ -62,7 +86,7 @@ export default {
                 name: flockSampleName
             });
             
-            const volume = new Tone.Volume(0).toDestination();
+            const volume = new Tone.Volume(0).connect(sideChainVolume);
             volume.set({
                 name: flockSampleName,
                 mute: true
@@ -73,9 +97,6 @@ export default {
             grainFlockerVolumes.push(volume);
         }
 
-        function mapRange(in1, in2, out1, out2, value) {
-            return (value - in1) * (out2 - out1) / (in2 - in1) + out1;
-        }
 
         const play = computed(() => store.getters.getPlay);
         const lastChanged = computed(() => store.getters.getLastChanged);
@@ -87,57 +108,57 @@ export default {
         }
 
         watch(play, newValue => {
-            //map it to between 0 and grainFlockerSampleLength
-            const indexToChange = grainFlockers.findIndex((player) => {
-                return player.name === lastChanged.value
-            });
-
-            const sampleLength = grainFlockerSampleLengths.find((guy) => guy.name === lastChanged.value).length;
-
-            const player = newValue.find(player => player.name === lastChanged.value);
-
-            //position, spread and length
-            console.log(spreadID);
-            let spreadPosition = player.position + player.spread * spreadID;
-            if(spreadPosition > 100) {
-                spreadPosition -= 100;
-            }
-            if(spreadPosition < 0) {
-                spreadPosition += 100;
-            }
-
-
-            const loopStart = mapRange(0, 100, 0, sampleLength, spreadPosition);
-            const loopLength = mapRange(0, 100, 0.01, 0.5, player.length);
-
-
-            let loopEnd = loopStart + loopLength;
-
-            if(loopEnd > sampleLength) {
-                loopEnd = sampleLength;
-            }
-            
-            grainFlockers[indexToChange].set({
-                loopStart: loopStart,
-                loopEnd: loopEnd,
-            });
-
-            //volume
-            
-            if(player.volume > 3) {
-                const newVolume = mapRange(0, 100, -40, 0, player.volume);
-                grainFlockerVolumes[indexToChange].set({
-                    mute: false,
-                    volume: newVolume
+                //map it to between 0 and grainFlockerSampleLength
+                const indexToChange = grainFlockers.findIndex((player) => {
+                    return player.name === lastChanged.value
                 });
-            } else {
-                grainFlockerVolumes[indexToChange].set({
-                    mute: true,
-            });
-        }
 
-        }, {
-            deep: true
+                const sampleLength = grainFlockerSampleLengths.find((guy) => guy.name === lastChanged.value).length;
+
+                const player = newValue.find(player => player.name === lastChanged.value);
+
+                //position, spread and length
+                console.log(spreadID);
+                let spreadPosition = player.position + player.spread * spreadID;
+                if(spreadPosition > 100) {
+                    spreadPosition -= 100;
+                }
+                if(spreadPosition < 0) {
+                    spreadPosition += 100;
+                }
+
+
+                const loopStart = mapRange(0, 100, 0, sampleLength, spreadPosition);
+                const loopLength = mapRange(0, 100, 0.01, 0.5, player.length);
+
+
+                let loopEnd = loopStart + loopLength;
+
+                if(loopEnd > sampleLength) {
+                    loopEnd = sampleLength;
+                }
+                
+                grainFlockers[indexToChange].set({
+                    loopStart: loopStart,
+                    loopEnd: loopEnd,
+                });
+
+                //volume
+                
+                if(player.volume > 3) {
+                    const newVolume = mapRange(0, 100, -40, 0, player.volume);
+                    grainFlockerVolumes[indexToChange].set({
+                        mute: false,
+                        volume: newVolume
+                    });
+                } else {
+                    grainFlockerVolumes[indexToChange].set({
+                        mute: true,
+                    });
+                }
+
+            }, {
+                deep: true
         });
 
         const audioIsActive = ref(false);

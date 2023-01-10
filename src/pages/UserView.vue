@@ -54,7 +54,8 @@ export default {
             } else {
                 return 'THISBODY THISBODY THISBODY '
             }
-        }
+        },
+
     },
     methods: {
         startAudio() {

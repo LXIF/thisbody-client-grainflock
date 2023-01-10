@@ -2,6 +2,7 @@
 var path = require('path');
 
 module.exports = {
+    outputDir: path.resolve('/Users/andrischatz/dev/personal/thisbody-server-main/dist'),
     css: {
      loaderOptions: {
       //pass options to stylus-loader
@@ -10,4 +11,4 @@ module.exports = {
       }
      }
     }
-   };
+   }

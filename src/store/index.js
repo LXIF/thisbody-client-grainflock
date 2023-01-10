@@ -10,7 +10,8 @@ const store = createStore({
             connected: false,
             audioStarted: false,
             play: [],
-            lastChanged: ''
+            lastChanged: '',
+            midi: 0,
         }
     },
     mutations: {
@@ -60,6 +61,9 @@ const store = createStore({
                 }
             }
             state.play.sort((a,b) => parseInt(a.name) - parseInt(b.name));
+        },
+        setMidi(state, payload) {
+            state.midi = payload;
         }
     },
     actions: {
@@ -84,7 +88,13 @@ const store = createStore({
         },
         receivePlay(context, payload) {
             context.commit('setPlay', payload);
-        }
+        },
+        sendMidi(context, payload) {
+            socket.emit('midi', payload);
+        },
+        receiveMidi(context, payload) {
+            context.commit('setMidi', payload);
+        } 
     },
     getters: {
         // getHeartbeat(state) {
@@ -101,6 +111,9 @@ const store = createStore({
         },
         getLastChanged(state) {
             return state.lastChanged
+        },
+        getMidi(state) {
+            return state.midi
         }
     }
 
@@ -122,6 +135,10 @@ socket.on('disconnect', () => {
 socket.on('play', (payload) => {
     store.dispatch('receivePlay', payload);
 });
+
+socket.on('midi', (payload) => {
+    store.dispatch('receiveMidi', payload);
+})
 
 
 export default store;
