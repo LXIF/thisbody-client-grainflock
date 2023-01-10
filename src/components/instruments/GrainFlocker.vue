@@ -54,6 +54,7 @@ export default {
                     length: sampleLength(grainFlocker)
                 });
             });
+
             grainFlocker.set({
                 loop: true,
                 loopStart: 0,
@@ -79,19 +80,24 @@ export default {
         const play = computed(() => store.getters.getPlay);
         const lastChanged = computed(() => store.getters.getLastChanged);
 
-        const spreadID = Math.pow(Math.random() * 2 - 1, 1.3);
+        let spreadID = Math.pow(Math.random(), 1.3);
+        let negative = Math.random() > 0.5;
+        if(negative) {
+            spreadID *= -1;
+        }
 
         watch(play, newValue => {
             //map it to between 0 and grainFlockerSampleLength
             const indexToChange = grainFlockers.findIndex((player) => {
                 return player.name === lastChanged.value
             });
+
             const sampleLength = grainFlockerSampleLengths.find((guy) => guy.name === lastChanged.value).length;
 
             const player = newValue.find(player => player.name === lastChanged.value);
 
             //position, spread and length
-            // console.log(spreadID);
+            console.log(spreadID);
             let spreadPosition = player.position + player.spread * spreadID;
             if(spreadPosition > 100) {
                 spreadPosition -= 100;
@@ -100,8 +106,10 @@ export default {
                 spreadPosition += 100;
             }
 
+
             const loopStart = mapRange(0, 100, 0, sampleLength, spreadPosition);
             const loopLength = mapRange(0, 100, 0.01, 0.5, player.length);
+
 
             let loopEnd = loopStart + loopLength;
 
@@ -135,20 +143,32 @@ export default {
         const audioIsActive = ref(false);
 
         function startAudio() {
-            audioIsActive.value = true;
-            Tone.start()
-            .then(() => {
-                Tone.Transport.start();
-                // playBreathSamples();
-                for(let i = 0; i < grainFlockers.length; i++) {
-                    grainFlockers[i].start();
+            function checkBuffersLoaded() {
+                let buffersLoaded = true;
+                for(let flocker of grainFlockers) {
+                    if (!flocker.loaded) {
+                        buffersLoaded = false;
+                    }
                 }
-            });
-            store.dispatch('startAudio');
-            noSleep.enable();
-            // if(process.env.FULLSCREEN) {
-            //     document.querySelector('body').requestFullscreen();
-            // }
+                return buffersLoaded
+            }
+
+            if(checkBuffersLoaded()) {
+                audioIsActive.value = true;
+                Tone.start()
+                .then(() => {
+                    Tone.Transport.start();
+                    // playBreathSamples();
+                    for(let i = 0; i < grainFlockers.length; i++) {
+                        grainFlockers[i].start();
+                    }
+                });
+                store.dispatch('startAudio');
+                noSleep.enable();
+            } else {
+                console.log('waiting for buffers');
+                setTimeout(startAudio(), 1000);
+            }
         }
 
         return {
