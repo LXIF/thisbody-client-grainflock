@@ -25,11 +25,12 @@ export default {
 
 
         ////////////////TEST SYNTH///////////////
-        const testSynth = new Tone.Synth().toDestination();
+        const testSampler = new Tone.Sampler({
+            urls: {A1: '/samples/thisbody_grainflocker_01.wav'}
+        }).toDestination();
 
         function testTone() {
-            const randomFrequency = 300 + Math.random() * 500;
-            testSynth.triggerAttackRelease(randomFrequency,"8n");
+            testSampler.triggerAttack('A1');
         }
 
         ////////////GRAINFLOCKER///////////////
@@ -130,6 +131,7 @@ export default {
 
                 const loopStart = mapRange(0, 100, 0, sampleLength, spreadPosition);
                 const loopLength = mapRange(0, 100, 0.01, 0.5, player.length);
+                const detune = mapRange(-100, 100, -200, 200, player.spread * spreadID);
 
 
                 let loopEnd = loopStart + loopLength;
@@ -141,6 +143,7 @@ export default {
                 grainFlockers[indexToChange].set({
                     loopStart: loopStart,
                     loopEnd: loopEnd,
+                    detune: detune
                 });
 
                 //volume
@@ -171,6 +174,9 @@ export default {
                         buffersLoaded = false;
                     }
                 }
+                if(!testSampler.loaded) {
+                    buffersLoaded = false;
+                }
                 return buffersLoaded
             }
 
@@ -183,6 +189,7 @@ export default {
                     for(let i = 0; i < grainFlockers.length; i++) {
                         grainFlockers[i].start();
                     }
+                    testTone();
                 });
                 store.dispatch('startAudio');
                 noSleep.enable();
