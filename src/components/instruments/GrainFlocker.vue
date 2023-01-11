@@ -65,11 +65,11 @@ export default {
                 .then(response => response.json())
                 .then(data => {
                     flockSampleNames = [...data.list];
-                    console.log(flockSampleNames);
                     for(let counter = 0; counter < flockSampleNames.length; counter++) {
 
                         //create actual grainers
                         const grainFlocker = new Tone.GrainPlayer(flockSamplesApi + flockSampleNames[counter], () => {
+                            console.log('loaded')
                             grainFlockerSampleLengths.push({
                                 name: flockSampleNames[counter],
                                 length: sampleLength(grainFlocker)
@@ -93,7 +93,6 @@ export default {
                         grainFlockers.push(grainFlocker);
                         grainFlockerVolumes.push(volume);
                     }
-                    console.log(grainFlockers)
                 })
 
 
@@ -173,7 +172,7 @@ export default {
         function startAudio() {
             function checkBuffersLoaded() {
                 let buffersLoaded = true;
-                for(let flocker of grainFlockers) {
+                for(const flocker of grainFlockers) {
                     if (!flocker.loaded) {
                         buffersLoaded = false;
                     }
@@ -188,7 +187,7 @@ export default {
                 audioIsActive.value = true;
                 Tone.start()
                 .then(() => {
-                    Tone.Transport.start();
+                    // Tone.Transport.start();
                     // playBreathSamples();
                     for(let i = 0; i < grainFlockers.length; i++) {
                         grainFlockers[i].start();
@@ -199,7 +198,7 @@ export default {
                 noSleep.enable();
             } else {
                 console.log('waiting for buffers');
-                setTimeout(startAudio(), 1000);
+                setTimeout(startAudio, 1000);
             }
         }
 

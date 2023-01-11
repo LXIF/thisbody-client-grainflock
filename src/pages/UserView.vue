@@ -4,7 +4,7 @@
          <transition name='welcome-transition'>
              <div class='welcome' v-if='!audioIsActive'>
                 <h3 lang="en" class='call-to-connect'><span class='title'>EVER HEAR THISBODY?</span> <br><br><span class='cta'>will you uwu with me? touch below.</span></h3>
-                <marquee-button class='yes-button' @click='startAudio' text='UWU' clicktext='OWO' />
+                <marquee-button class='yes-button' @buttonClick='startAudio' text='UWU' clicktext='OWO' />
             </div>
             <h3
                 v-else
