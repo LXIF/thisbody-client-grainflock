@@ -4,13 +4,19 @@
                 <!-- <h3 style="color: white">howdy</h3> -->
                 <qr-code scale="12" class="andri-qr"></qr-code>
             </div>
-            <h3>chouwa</h3>
+            <div :key="flocker" v-for="flocker in grainFlockerNames">
+                <h3>{{ flocker }}</h3>
+                <xy-pad @presence="presence(flocker, 'pos-spread', $event)" side="right"></xy-pad>
+                <xy-pad @presence="presence(flocker, 'len-vol', $event)" side="left"></xy-pad>
+                <hr />
+            </div>
+            <!-- <h3>chouwa</h3>
             <xy-pad @presence="presence('01', 'pos-spread', $event)" side="right"></xy-pad>
             <xy-pad @presence="presence('01', 'len-vol', $event)" side="left"></xy-pad>
             <hr />
             <h3>taiko</h3>
             <xy-pad @presence="presence('02', 'pos-spread', $event)" side="right"></xy-pad>
-            <xy-pad @presence="presence('02', 'len-vol', $event)" side="left"></xy-pad>
+            <xy-pad @presence="presence('02', 'len-vol', $event)" side="left"></xy-pad> -->
             <!-- <grain-flocker :audioHasStarted="true"></grain-flocker> -->
     </div>
 </template>
@@ -18,6 +24,7 @@
 <script>
 
 import { useStore } from 'vuex'
+import { ref } from 'vue'
 import QrCode from '../components/UI/QrCode.vue';
 // let GrainFlocker = () => import('../components/instruments/GrainFlocker.vue')
 // import { ref } from 'vue'
@@ -26,6 +33,13 @@ export default {
 
     setup() {
         const store = useStore();
+        const grainFlockerNames = ref([]);
+
+        fetch('http://' + process.env.VUE_APP_HOST_IP + '/sampleslist')
+                .then(response => response.json())
+                .then(data => {
+                    grainFlockerNames.value = [...data.list];
+                })
 
         function presence(name, controller, presence) {
             const playObject = {
@@ -37,65 +51,10 @@ export default {
             store.dispatch('sendPlay', playObject);
         }
 
-        //////////////MIDI///////////////
-        //for midi
-        // function allowMIDIAccess() {
-        //         navigator.requestMIDIAccess()
-        //         .then(onMIDISuccess, onMIDIFailure);
-        // }
-
-        // try {
-        //     allowMIDIAccess();
-        // } catch(err) {
-        //     console.log(err);
-        // }
-
-        // function onMIDIFailure() {
-        //     console.log('Could not access your MIDI devices.');
-        // }
-
-        // function onMIDISuccess(midiAccess) {
-        //     console.log(midiAccess);
-        //     for (var input of midiAccess.inputs.values()) {
-        //         input.onmidimessage = getMIDIMessage;
-        //     }
-        // }
-
-        // function midiToPercent(i) {
-        //     return i / 127 * 100;
-        // }
-
-        // function getMIDIMessage(midiMessage) {
-        //     const data = midiMessage.data;
-        //         switch (data[1]) {
-        //             case 70: //breath
-        //                 breathIntensity.value = midiToPercent(data[2]);
-        //                 store.dispatch('sendBreath', data[2]);
-        //                 break;
-        //             case 71: //bite
-        //                 biteIntensity.value = midiToPercent(data[2]);
-        //                 store.dispatch('sendBite', data[2]);
-        //                 break;
-        //             case 72: //nod
-        //                 nodIntensity.value = midiToPercent(data[2]);
-        //                 store.dispatch('sendNod', data[2]);
-        //                 break;
-        //             case 73: //tilt
-        //                 tiltIntensity.value = midiToPercent(data[2]);
-        //                 store.dispatch('sendTilt', data[2]);
-        //                 break;
-        //             case 100: //heartbeat
-        //                 heartbeatIntensity.value = midiToPercent(data[2]);
-        //                 store.dispatch('sendHeartbeat', data[2]);
-        //                 break;
-        //             default:
-        //                 break;
-        //     }
-        // }
+        
         return {
             presence,
-            // GrainFlocker
-            // GrainFlocker: () => import('../components/instruments/GrainFlocker.vue')
+            grainFlockerNames
         }
     },
     components: {

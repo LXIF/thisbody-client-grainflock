@@ -4,6 +4,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import UserView from './pages/UserView'
 import AndriView from './pages/AndriView'
 import MidiView from './pages/MidiView'
+import UploadView from './pages/UploadView'
 
 
 const routes = [
@@ -18,6 +19,10 @@ const routes = [
     {
         path: '/midi',
         component: MidiView
+    },
+    {
+        path: '/upload',
+        component: UploadView
     }
 ]
 

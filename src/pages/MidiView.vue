@@ -5,6 +5,7 @@
             <option v-bind:key="input" v-for="input in midiInputs">{{ input.name }}</option>
         </select>
         <p>selected: {{ selectedMidiInput }}</p>
+        <p>value: {{ midiValue }}</p>
     </div>
 </template>
 
@@ -16,6 +17,7 @@ import { useStore } from 'vuex'
 export default {
     setup() {
         const store = useStore();
+        const midiValue = ref(0);
 
         //////////////MIDI///////////////
         //for midi
@@ -62,7 +64,7 @@ export default {
                 switch (data[1]) {
                     case 1: //first knob
                         store.dispatch('sendMidi', midiToPercent(data[2]));
-                        
+                        midiValue.value = midiToPercent(data[2]);
                         break;
                     case 2: //second knob
                         
@@ -76,7 +78,8 @@ export default {
 
         return {
             midiInputs,
-            selectedMidiInput
+            selectedMidiInput,
+            midiValue
         }
     },
     data() {

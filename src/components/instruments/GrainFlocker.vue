@@ -26,7 +26,7 @@ export default {
 
         ////////////////TEST SYNTH///////////////
         const testSampler = new Tone.Sampler({
-            urls: {A1: '/samples/thisbody_grainflocker_01.wav'}
+            urls: {A1: 'http://' + process.env.VUE_APP_HOST_IP + '/welcome' }
         }).toDestination();
 
         function testTone() {
@@ -55,47 +55,52 @@ export default {
         });
 
         //create sample paths
-        const numberOfFlockSamples = 2;
-        const flockBaseUrl = '/samples/thisbody_grainflocker_';
+        // const numberOfFlockSamples = 2;
+        const flockSamplesApi = 'http://' + process.env.VUE_APP_HOST_IP + '/grain/';
+        let flockSampleNames = [];
         const grainFlockers = [];
         const grainFlockerSampleLengths = [];
         const grainFlockerVolumes = [];
 
+        fetch('http://' + process.env.VUE_APP_HOST_IP + '/sampleslist')
+                .then(response => response.json())
+                .then(data => {
+                    flockSampleNames = [...data.list];
+                    console.log(flockSampleNames);
+                    for(let counter = 0; counter < flockSampleNames.length; counter++) {
+
+                        //create actual grainers
+                        const grainFlocker = new Tone.GrainPlayer(flockSamplesApi + flockSampleNames[counter], () => {
+                            grainFlockerSampleLengths.push({
+                                name: flockSampleNames[counter],
+                                length: sampleLength(grainFlocker)
+                            });
+                        });
+
+                        grainFlocker.set({
+                            loop: true,
+                            loopStart: 0,
+                            loopEnd: 0.1,
+                            name: flockSampleNames[counter]
+                        });
+                        
+                        const volume = new Tone.Volume(0).connect(sideChainVolume);
+                        volume.set({
+                            name: flockSampleNames[counter],
+                            mute: true
+                        });
+
+                        grainFlocker.connect(volume);
+                        grainFlockers.push(grainFlocker);
+                        grainFlockerVolumes.push(volume);
+                    }
+                    console.log(grainFlockers)
+                })
+
+
+
         function sampleLength(object) {
             return object.sampleTime * object.buffer.length
-        }
-
-        for(let counter = 1; counter <= numberOfFlockSamples; counter++) {
-            let flockSampleName;
-            if(counter < 10) {
-                flockSampleName = '0' + counter;
-            } else {
-                flockSampleName = counter;
-            }
-            //create actual grainers
-            const grainFlocker = new Tone.GrainPlayer(flockBaseUrl + flockSampleName + '.wav', () => {
-                grainFlockerSampleLengths.push({
-                    name: flockSampleName,
-                    length: sampleLength(grainFlocker)
-                });
-            });
-
-            grainFlocker.set({
-                loop: true,
-                loopStart: 0,
-                loopEnd: 0.1,
-                name: flockSampleName
-            });
-            
-            const volume = new Tone.Volume(0).connect(sideChainVolume);
-            volume.set({
-                name: flockSampleName,
-                mute: true
-            });
-
-            grainFlocker.connect(volume);
-            grainFlockers.push(grainFlocker);
-            grainFlockerVolumes.push(volume);
         }
 
 
@@ -203,6 +208,7 @@ export default {
             startAudio,
             audioIsActive,
             testTone,
+            grainFlockers
             // testSynth,
         }
     },
