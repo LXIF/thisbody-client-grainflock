@@ -56,7 +56,7 @@ export default {
 
         //create sample paths
         // const numberOfFlockSamples = 2;
-        const flockSamplesApi = 'process.env.VUE_APP_HOST_IP + '/grain/';
+        const flockSamplesApi = 'process.env.VUE_APP_HOST_IP' + '/grain/';
         let flockSampleNames = [];
         const grainFlockers = [];
         const grainFlockerSampleLengths = [];
