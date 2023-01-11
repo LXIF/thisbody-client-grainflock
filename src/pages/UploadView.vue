@@ -110,7 +110,7 @@ export default {
                 formData.append('sounds', file)
             })
 
-            fetch('http://' + process.env.VUE_APP_HOST_IP + '/grain', {
+            fetch(process.env.VUE_APP_HOST_IP + '/grain', {
                 method: 'POST',
                 body: formData,
             }).then(res => console.log(res))
@@ -122,7 +122,7 @@ export default {
 
             formData.append('sounds', welcomeFile);
 
-            fetch('http://' + process.env.VUE_APP_HOST_IP + '/welcome', {
+            fetch(process.env.VUE_APP_HOST_IP + '/welcome', {
                 method: 'POST',
                 body: formData,
             }).then(res => console.log(res))
@@ -130,7 +130,7 @@ export default {
 
         function deleteGrain(name) {
             console.log(name);
-            fetch('http://' + process.env.VUE_APP_HOST_IP + '/deletegrain/' + name, {
+            fetch(process.env.VUE_APP_HOST_IP + '/deletegrain/' + name, {
                 method: 'POST',
             }).then(res => console.log(res))
         }
@@ -139,11 +139,11 @@ export default {
         const currentWelcomeSound = ref()
 
         onMounted(() => {
-                fetch('http://' + process.env.VUE_APP_HOST_IP + '/sampleslist')
+                fetch(process.env.VUE_APP_HOST_IP + '/sampleslist')
                 .then(response => response.json())
                 .then(data => currentSounds.value = [...data.list])
 
-                fetch('http://' + process.env.VUE_APP_HOST_IP + '/welcomesound')
+                fetch(process.env.VUE_APP_HOST_IP + '/welcomesound')
                 .then(response => response.json())
                 .then(data => currentWelcomeSound.value = data.name)
             } 
