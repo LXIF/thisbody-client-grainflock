@@ -41,8 +41,7 @@ export default {
 
         watch(midi, newValue => {
             let newVolume = mapRange(0, 100, -40, 0, newValue);
-            console.log(newVolume);
-            if(newVolume < -55) {
+            if(newVolume < -39) {
                 sideChainVolume.set({
                     mute: true
                 })
