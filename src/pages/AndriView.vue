@@ -35,7 +35,7 @@ export default {
         const store = useStore();
         const grainFlockerNames = ref([]);
 
-        fetch('http://' + process.env.VUE_APP_HOST_IP + '/sampleslist')
+        fetch(process.env.VUE_APP_HOST_IP + '/sampleslist')
                 .then(response => response.json())
                 .then(data => {
                     grainFlockerNames.value = [...data.list];

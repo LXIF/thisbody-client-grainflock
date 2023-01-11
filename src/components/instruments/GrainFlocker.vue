@@ -26,7 +26,7 @@ export default {
 
         ////////////////TEST SYNTH///////////////
         const testSampler = new Tone.Sampler({
-            urls: {A1: 'http://' + process.env.VUE_APP_HOST_IP + '/welcome' }
+            urls: {A1: process.env.VUE_APP_HOST_IP + '/welcome' }
         }).toDestination();
 
         function testTone() {
@@ -56,13 +56,13 @@ export default {
 
         //create sample paths
         // const numberOfFlockSamples = 2;
-        const flockSamplesApi = 'http://' + process.env.VUE_APP_HOST_IP + '/grain/';
+        const flockSamplesApi = 'process.env.VUE_APP_HOST_IP + '/grain/';
         let flockSampleNames = [];
         const grainFlockers = [];
         const grainFlockerSampleLengths = [];
         const grainFlockerVolumes = [];
 
-        fetch('http://' + process.env.VUE_APP_HOST_IP + '/sampleslist')
+        fetch(process.env.VUE_APP_HOST_IP + '/sampleslist')
                 .then(response => response.json())
                 .then(data => {
                     flockSampleNames = [...data.list];
