@@ -88,14 +88,14 @@ export default {
         }
 
         function onChange() {
-            console.log(files.value[0].name);
+            console.log(welcomeFile.value);
         }
 
         const welcomeFile = ref();
 
         function dropWelcome(e) {
             e.preventDefault();
-            welcomeFile.value = e.dataTransfer.files;
+            welcomeFile.value = e.dataTransfer.files[0];
             onChange();
             isDragging.value = false;
         }
@@ -120,7 +120,7 @@ export default {
             console.log(welcomeFile.value);
             const formData = new FormData();
 
-            formData.append('sounds', welcomeFile);
+            formData.append('sounds', welcomeFile.value);
 
             fetch(process.env.VUE_APP_HOST_IP + '/welcome', {
                 method: 'POST',
