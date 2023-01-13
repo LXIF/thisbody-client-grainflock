@@ -20,14 +20,14 @@
             @pointerdown='testTone'
         /> -->
         <color-screen id='weather-display'
-            :lightness='0'
+            :lightness='meterLevel'
             :hue='0'
             :saturation='0'
-            :alpha='0'
+            :alpha='1'
         />
         <qr-code class="user-qr"></qr-code>
         <connection-frame></connection-frame>
-        <grain-flocker :audioHasStarted="audioIsActive"></grain-flocker>
+        <grain-flocker :audioHasStarted="audioIsActive" @meter="setMeter"></grain-flocker>
     </div>
 </template>
 
@@ -39,7 +39,8 @@ import QrCode from '../components/UI/QrCode.vue';
 export default {
     data() {
         return {
-            audioIsActive: false
+            audioIsActive: false,
+            meterLevel: 0
         }
     },
     components: {
@@ -60,6 +61,14 @@ export default {
     methods: {
         startAudio() {
             this.audioIsActive = true;
+        },
+        setMeter(level) {
+            function mapRange(in1, in2, out1, out2, value) {
+                return (value - in1) * (out2 - out1) / (in2 - in1) + out1;
+            }
+            const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
+            const outputLevel = clamp(mapRange(-40, -20, 0, 100, level), 0, 100);
+            this.meterLevel = outputLevel
         }
     }
 }

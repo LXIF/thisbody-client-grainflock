@@ -6,7 +6,7 @@ import { useStore } from 'vuex';
 import {
     computed,
     watch,
-    ref
+    ref,
 } from 'vue';
 
 import * as Tone from 'tone';
@@ -15,7 +15,7 @@ import NoSleep from 'nosleep.js'
 
 
 export default {
-    setup() {
+    setup(props, { emit }) {
         const store = useStore();
         let noSleep = new NoSleep();
 
@@ -23,21 +23,27 @@ export default {
             return (value - in1) * (out2 - out1) / (in2 - in1) + out1;
         }
 
+        //follower
+        const meter = new Tone.Meter().toDestination();
+        meter.smoothing = 0;
+
 
         ////////////////TEST SYNTH///////////////
         const testSampler = new Tone.Sampler({
             urls: {A1: process.env.VUE_APP_HOST_IP + '/welcome' }
-        }).toDestination();
+        }).connect(meter);
 
         function testTone() {
             testSampler.triggerAttack('A1');
         }
 
+        
+
         ////////////GRAINFLOCKER///////////////
 
         //sidechain
         const midi = computed(() => store.getters.getMidi);
-        const sideChainVolume = new Tone.Volume().toDestination();
+        const sideChainVolume = new Tone.Volume().connect(meter);
 
         watch(midi, newValue => {
             let newVolume = mapRange(0, 100, -40, 0, newValue);
@@ -112,6 +118,7 @@ export default {
         }
 
         watch(play, newValue => {
+            try {
                 //map it to between 0 and grainFlockerSampleLength
                 const indexToChange = grainFlockers.findIndex((player) => {
                     return player.name === lastChanged.value
@@ -122,7 +129,6 @@ export default {
                 const player = newValue.find(player => player.name === lastChanged.value);
 
                 //position, spread and length
-                console.log(spreadID);
                 let spreadPosition = player.position + player.spread * spreadID;
                 if(spreadPosition > 100) {
                     spreadPosition -= 100;
@@ -162,6 +168,9 @@ export default {
                         mute: true,
                     });
                 }
+            } catch {
+                console.log('ouch');
+            }
 
             }, {
                 deep: true
@@ -196,6 +205,9 @@ export default {
                 });
                 store.dispatch('startAudio');
                 noSleep.enable();
+                setInterval(() => {
+                    emit('meter', meter.getValue());
+                }, 50);
             } else {
                 console.log('waiting for buffers');
                 setTimeout(startAudio, 1000);
